@@ -1,0 +1,216 @@
+body {
+  background-color: #1a162b; /* Vibrant deep space indigo theme */
+  color: #f8f9fa;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Ambient Colorful Neon Glow Behind Content */
+.glow-orb {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(181, 23, 158, 0.4) 0%, rgba(114, 9, 183, 0.1) 50%, transparent 100%);
+  z-index: -1;
+  filter: blur(50px);
+}
+
+.bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(rgba(181, 23, 158, 0.08) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(181, 23, 158, 0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -2;
+}
+
+.text-light-muted {
+  color: #cbd5e1;
+}
+
+/*  Branding Header */
+.neon-title {
+  font-weight: 800;
+  font-size: 5rem;
+  letter-spacing: 1px;
+  background: linear-gradient(45deg, #f72585, #b5179e, #4cc9f0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 40px rgba(247, 37, 133, 0.4);
+}
+
+/* Action Buttons  */
+.btn-neon-purple {
+  background-color: #7209b7;
+  color: #ffffff;
+  border: 2px solid #7209b7;
+  box-shadow: 0 0 20px rgba(114, 9, 183, 0.5);
+  transition: all 0.3s ease-in-out;
+  font-weight: 600;
+  padding: 14px 36px;
+}
+
+.btn-neon-purple:hover {
+  background-color: #f72585;
+  border-color: #f72585;
+  box-shadow: 0 0 30px rgba(247, 37, 133, 0.7);
+  color: #ffffff;
+  transform: translateY(-4px);
+}
+
+.btn-neon-outline {
+  background-color: transparent;
+  color: #ffffff;
+  border: 2px solid #b5179e;
+  transition: all 0.3s ease-in-out;
+  font-weight: 600;
+  padding: 14px 36px;
+  box-shadow: 0 0 10px rgba(181, 23, 158, 0.2);
+}
+
+.btn-neon-outline:hover {
+  background-color: rgba(181, 23, 158, 0.15);
+  color: #fff;
+  border-color: #f72585;
+  box-shadow: 0 0 25px rgba(247, 37, 133, 0.4);
+  transform: translateY(-4px);
+}
+
+/*  RIGHT SIDE ANIMATED GRAPHIC  */
+.graphic-wrapper {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main Glowing Center Sphere */
+.main-glow-sphere {
+  width: 160px;
+  height: 160px;
+  background: linear-gradient(135deg, #7209b7, #f72585);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 50px rgba(247, 37, 133, 0.5);
+  animation: pulseGlow 3s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 2;
+}
+
+/* Built-in Chat Bubble Fallback Icon */
+.main-glow-sphere::before {
+  content: "💬";
+  font-size: 3.5rem;
+}
+
+/* Floating interface element badges */
+.floating-card {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+
+.primary-card {
+  top: 10%;
+  right: 15%;
+  width: 180px;
+  animation: floatAnim 5s ease-in-out infinite;
+}
+
+.primary-card::before {
+  content: "Lume User";
+  display: block;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #4cc9f0;
+  margin-bottom: 4px;
+}
+
+.secondary-card {
+  bottom: 15%;
+  left: 10%;
+  width: 140px;
+  text-align: center;
+  animation: floatAnim 4s ease-in-out infinite 1.5s;
+}
+
+.secondary-card::before {
+  content: "🛡️ Secure";
+  display: block;
+  font-weight: 600;
+  color: #2ec4b6;
+}
+
+/* Dummy asset lines inside cards */
+.dummy-line {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  margin-top: 8px;
+}
+.dummy-line.long { width: 90%; }
+.dummy-line.short { width: 50%; }
+
+/* CSS Animations */
+@keyframes floatAnim {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-15px) scale(1.02); }
+  100% { transform: translateY(0px) scale(1); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 30px rgba(247, 37, 133, 0.4); transform: scale(0.97); }
+  100% { box-shadow: 0 0 60px rgba(76, 201, 240, 0.6); transform: scale(1.03); }
+}
+
+/*  Feature Cards Grid */
+.feature-card {
+  background: rgba(30, 27, 46, 0.75);
+  border: 1px solid rgba(181, 23, 158, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  border-color: #4cc9f0;
+  box-shadow: 0 10px 30px rgba(72, 201, 240, 0.3);
+}
+
+.icon-box i {
+  color: #4cc9f0;
+  transition: transform 0.4s ease, color 0.4s ease;
+}
+
+.feature-card:hover .icon-box i {
+  transform: scale(1.2) rotate(8deg);
+  color: #f72585;
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
