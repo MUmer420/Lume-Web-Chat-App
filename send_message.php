@@ -18,6 +18,22 @@ if ($receiver_id === 0 || $message === '') {
     exit("invalid_payload");
 }
 
+// Block check: reject if either party has blocked the other
+$blockStmt = $conn->prepare("
+    SELECT id FROM blocks 
+    WHERE (blocker_id = ? AND blocked_id = ?) 
+       OR (blocker_id = ? AND blocked_id = ?)
+    LIMIT 1
+");
+$blockStmt->bind_param("iiii", $sender_id, $receiver_id, $receiver_id, $sender_id);
+$blockStmt->execute();
+$blockStmt->store_result();
+if ($blockStmt->num_rows > 0) {
+    $blockStmt->close();
+    exit("blocked");
+}
+$blockStmt->close();
+
 $stmt = $conn->prepare("SELECT id, language FROM users WHERE id = ? OR id = ?");
 $stmt->bind_param("ii", $sender_id, $receiver_id);
 $stmt->execute();
@@ -46,7 +62,6 @@ $target_code = $langMap[$receiver_lang] ?? 'en';
 
 $translated_message = $message; // Default fallback
 
-// 3. Trigger LibreTranslate API call with absolute safety fallbacks
 if ($source_code !== $target_code) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "http://translator:5000/translate");
