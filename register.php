@@ -48,7 +48,7 @@ elseif (!preg_match('/^[a-zA-Z0-9_ ]+$/', $username)) {
             $message = "Account created! You can now sign in.";
             $username = $email = $language = "";
         } else {
-            $message = "That email is already registered.";
+            $message = "Registration failed. Please try again.";
         }
         $stmt->close();
     }

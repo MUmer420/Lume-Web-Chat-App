@@ -1,4 +1,3 @@
-// js/register_validation.js
 console.log("Registration validation engine active.");
 
 document.getElementById('register-form').addEventListener('submit', function(e) {
@@ -30,13 +29,14 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
     const passwordErr = document.getElementById('password-error');
     const languageErr = document.getElementById('language-error');
 
+
 // 1. Validate Username
 const username = usernameInput.value.trim();
 if (username === "") {
     invalidateField(usernameInput, usernameErr, "Username field cannot be left blank.");
 } else if (username.length < 3) {
     invalidateField(usernameInput, usernameErr, "Username must be at least 3 characters long.");
-} else if (!/^[a-zA-Z0-9_ ]+$/.test(username)) { // <-- ADDED A SPACE HERE right after the underscore
+} else if (!/^[a-zA-Z0-9_ ]+$/.test(username)) { 
     invalidateField(usernameInput, usernameErr, "Username can only contain alphanumeric characters, underscores, and spaces.");
 } else {
     validateField(usernameInput, usernameErr);
