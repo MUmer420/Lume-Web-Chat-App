@@ -10,41 +10,44 @@ if (empty($expected_key) || $provided_key !== $expected_key) {
 // Set execution timeout to give the database time to respond
 set_time_limit(60);
 
-$host     = getenv('DB_HOST') ?: 'db';
-$username = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASS') ?: 'root';
+// Check if running on Railway via its unified connection URL
+$mysql_url = getenv('MYSQL_URL');
 
-$conn = null;
-$max_attempts = 10;
-$attempt = 0;
-
-echo "Connecting to database service...<br>";
-
-// Retry connection loop to handle Docker container initialization lag
-while ($attempt < $max_attempts) {
-    $attempt++;
-    $conn = @new mysqli($host, $username, $password);
-
-    if (!$conn->connect_error) {
-        break;
-    }
-
-    echo "Database service is initializing... Retrying in 3 seconds (Attempt $attempt of $max_attempts)<br>";
+if (!empty($mysql_url)) {
+    echo "Connecting via unified Railway URL...<br>";
     flush();
-    sleep(3);
+    
+    // Parse the URL strings automatically
+    $url = parse_url($mysql_url);
+    $host     = $url['host'] . (isset($url['port']) ? ':' . $url['port'] : '');
+    $username = $url['user'];
+    $password = $url['pass'];
+    $dbname   = ltrim($url['path'], '/');
+} else {
+    // Fallback to individual variables or local development defaults
+    echo "Connecting via individual environment variables...<br>";
+    flush();
+    
+    $host     = getenv('DB_HOST') ?: 'localhost';
+    $username = getenv('DB_USER') ?: 'root';
+    $password = getenv('DB_PASS') ?: '';
+    $dbname   = getenv('DB_NAME') ?: 'lume';
 }
+
+// Establish the MySQL Connection
+$conn = @new mysqli($host, $username, $password);
 
 if ($conn->connect_error) {
     die("<br><strong style='color:red;'>Connection Failed permanently:</strong> " . $conn->connect_error);
 }
 
 echo "<br><strong style='color:green;'>Connected successfully!</strong> Building application schema...<br><br>";
+flush();
 
 // 1. Establish database environment
-$dbname = getenv('DB_NAME') ?: 'lume';
 $sql = "CREATE DATABASE IF NOT EXISTS `$dbname`";
 if ($conn->query($sql)) {
-    echo "Database '$dbname' Created Successfully<br>";
+    echo "Database '$dbname' verified/created successfully.<br>";
 } else {
     die("Database Error: " . $conn->error);
 }
@@ -69,8 +72,7 @@ if ($conn->query($users)) {
     try {
         $conn->query("ALTER TABLE users ADD COLUMN theme VARCHAR(10) NOT NULL DEFAULT 'dark'");
     } catch (mysqli_sql_exception $e) {
-
-        if ($e->getCode() !== 1060) {
+        if ($e->getCode() !== 1060) { // Ignore duplicate column error
             echo "Migration Alert: " . $e->getMessage() . "<br>";
         }
     }
@@ -122,7 +124,6 @@ if ($conn->query($blocks)) {
 
 // 5. Build High-Performance Polling Indexes
 $index = "CREATE INDEX idx_chat_flow ON messages (sender_id, receiver_id, id)";
-// Using @ to suppress warnings if the index already exists from a previous run
 @$conn->query($index);
 
 echo "<br><strong style='color:green;'>Setup Complete!</strong> You can now go to <a href='register.php'>register.php</a> to create accounts.";
