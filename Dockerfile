@@ -8,15 +8,14 @@ RUN apt-get update && apt-get install -y \
 
 RUN echo "PassEnv SETUP_KEY DB_HOST DB_USER DB_PASS DB_NAME" >> /etc/apache2/apache2.conf
 
+# Move your project files into the Apache document root
+COPY . /var/www/html/
+
 # ==========================================
 # Fix for Railway Apache MPM conflict
 # ==========================================
 
-# Copy the script into the container's path
 COPY docker-entrypoint.sh /usr/local/bin/
-
-# Make the script executable
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Tell Docker to execute our script on startup instead of default Apache
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
