@@ -86,7 +86,7 @@ if ($source_code !== $target_code) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 15); 
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 
-   $response = curl_exec($ch);
+    $response = curl_exec($ch);
     
     if (!curl_errno($ch)) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -104,6 +104,7 @@ if ($source_code !== $target_code) {
         $translated_message = "DEBUG: cURL Error: " . curl_error($ch);
     }
     curl_close($ch);
+} // <--- Added the missing closing brace here
 
 $stmt = $conn->prepare("
     INSERT INTO messages (
