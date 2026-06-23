@@ -22,13 +22,11 @@ if (isset($_POST['register'])) {
 
     $allowed_languages = ['English', 'Spanish', 'French', 'German', 'Italian', 'Chinese'];
 
-
-if (strlen($username) < 3 || strlen($username) > 100) {
-    $message = "Username must be between 3 and 100 characters.";
-} 
-// Optional backend regex match to align with frontend rules:
-elseif (!preg_match('/^[a-zA-Z0-9_ ]+$/', $username)) { 
-    $message = "Username can only contain letters, numbers, underscores, and spaces.";
+    if (strlen($username) < 3 || strlen($username) > 100) {
+        $message = "Username must be between 3 and 100 characters.";
+    } 
+    elseif (!preg_match('/^[a-zA-Z0-9_ ]+$/', $username)) { 
+        $message = "Username can only contain letters, numbers, underscores, and spaces.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 150) {
         $message = "Please enter a valid email address.";
     } elseif (strlen($password) < 6) {
@@ -40,17 +38,35 @@ elseif (!preg_match('/^[a-zA-Z0-9_ ]+$/', $username)) {
     } else {
         $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $conn->prepare("INSERT INTO users (username, email, password, language, theme) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $username, $email, $hashed, $language, $theme);
+        // Wrapped database operations in a try-catch to intercept duplicate constraint violations cleanly
+        try {
+            $stmt = $conn->prepare("INSERT INTO users (username, email, password, language, theme) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $username, $email, $hashed, $language, $theme);
 
-        if ($stmt->execute()) {
-            $success = true;
-            $message = "Account created! You can now sign in.";
-            $username = $email = $language = "";
-        } else {
-            $message = "Registration failed. Please try again.";
+            if ($stmt->execute()) {
+                $success = true;
+                $message = "Account created! You can now sign in.";
+                $username = $email = $language = "";
+            } else {
+                $message = "Registration failed. Please try again.";
+            }
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            // MySQL error code 1062 represents a unique/duplicate key constraint violation
+            if ($e->getCode() === 1062) {
+                // Pinpoint if it was the email or username that caused the clash
+                if (strpos($e->getMessage(), 'users.email') !== false) {
+                    $message = "This email address is already registered. Please log in or use another.";
+                } elseif (strpos($e->getMessage(), 'users.username') !== false) {
+                    $message = "This username is already taken. Please choose another.";
+                } else {
+                    $message = "An account with these details already exists.";
+                }
+            } else {
+                // General fallback container for unhandled SQL exceptions
+                $message = "Database error encountered: " . $e->getMessage();
+            }
         }
-        $stmt->close();
     }
 }
 ?>
