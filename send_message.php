@@ -64,7 +64,15 @@ $translated_message = $message; // Default fallback
 
 if ($source_code !== $target_code) {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://translator:5000/translate");
+    
+    // Read the dynamic shared variable link from Railway or fallback to local Docker service naming
+    $translator_host = getenv('TRANSLATOR_URL') ?: 'translator:5000';
+    
+    // Ensure the proper http protocol is prefixed onto the network string
+    $translator_url = (strpos($translator_host, 'http') === 0) ? $translator_host : "http://" . $translator_host;
+    $translator_url = rtrim($translator_url, '/') . "/translate";
+
+    curl_setopt($ch, CURLOPT_URL, $translator_url);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
         'q'      => $message,
@@ -74,8 +82,8 @@ if ($source_code !== $target_code) {
     ]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     
-    //  Set a tight timeout so your chat app never freezes up waiting
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10); 
+    // Set a reasonable timeout to allow the cloud translation engine to respond
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15); 
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 
     $response = curl_exec($ch);
@@ -93,7 +101,7 @@ if ($source_code !== $target_code) {
     } else {
         // Log the error internally on the server side for debugging later
         error_log("LibreTranslate cURL error: " . curl_error($ch));
-    $translated_message = $message; // fallback
+        $translated_message = $message; // fallback
     }
     curl_close($ch);
 }

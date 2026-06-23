@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-enable mysqli \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ADDED MYSQL_URL HERE: Passes the database string down to Apache
-RUN echo "PassEnv SETUP_KEY MYSQL_URL DB_HOST DB_USER DB_PASS DB_NAME" >> /etc/apache2/apache2.conf
+# Pass all variables down into Apache runtime instances (Including TRANSLATOR_URL)
+RUN echo "PassEnv SETUP_KEY TRANSLATOR_URL MYSQL_URL DB_HOST DB_USER DB_PASS DB_NAME" >> /etc/apache2/apache2.conf
 
 # Move your project files into the Apache document root
 COPY . /var/www/html/
