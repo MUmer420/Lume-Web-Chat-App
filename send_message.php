@@ -86,25 +86,24 @@ if ($source_code !== $target_code) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 15); 
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 
-    $response = curl_exec($ch);
+   $response = curl_exec($ch);
     
-    // Check if the translator container successfully answered
     if (!curl_errno($ch)) {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        error_log("LibreTranslate HTTP: " . $http_code . " Response: " . $response);
         if ($http_code === 200) {
             $responseData = json_decode($response, true);
             if (isset($responseData['translatedText'])) {
                 $translated_message = $responseData['translatedText'];
+            } else {
+                $translated_message = "DEBUG: JSON Missing Key. Response: " . substr($response, 0, 50);
             }
+        } else {
+            $translated_message = "DEBUG: HTTP Error Code " . $http_code . " Response: " . substr($response, 0, 50);
         }
     } else {
-        // Log the error internally on the server side for debugging later
-        error_log("LibreTranslate cURL error: " . curl_error($ch));
-        $translated_message = $message; // fallback
+        $translated_message = "DEBUG: cURL Error: " . curl_error($ch);
     }
     curl_close($ch);
-}
 
 $stmt = $conn->prepare("
     INSERT INTO messages (
