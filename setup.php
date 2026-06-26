@@ -6,18 +6,14 @@ if (empty($expected_key) || $provided_key !== $expected_key) {
     http_response_code(403);
     die("<strong style='color:red;'>403 Forbidden:</strong> Setup is not accessible. Provide a valid setup_key parameter.");
 }
-
-// Set execution timeout to give the database time to respond
 set_time_limit(60);
 
-// Check if running on Railway via its unified connection URL
 $mysql_url = getenv('MYSQL_URL');
 
 if (!empty($mysql_url)) {
     echo "Connecting via unified Railway URL...<br>";
     flush();
-    
-    // Parse the URL strings automatically
+
     $url = parse_url($mysql_url);
     $host     = $url['host'] . (isset($url['port']) ? ':' . $url['port'] : '');
     $username = $url['user'];
@@ -54,7 +50,7 @@ if ($conn->query($sql)) {
 
 $conn->select_db($dbname);
 
-// 2. Build Users Table
+// 2. Build Users Table with Security Lockout Columns Pre-Baked
 $users = "CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
@@ -62,20 +58,13 @@ $users = "CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     language VARCHAR(50) NOT NULL,
     theme VARCHAR(10) NOT NULL DEFAULT 'dark',
+    failed_attempts INT DEFAULT 0,
+    lockout_time DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )";
 
 if ($conn->query($users)) {
     echo "Users Table Configured Successfully<br>";
-
-    // Wrap migration inside a try-catch block to handle strict modern mysqli exceptions gracefully
-    try {
-        $conn->query("ALTER TABLE users ADD COLUMN theme VARCHAR(10) NOT NULL DEFAULT 'dark'");
-    } catch (mysqli_sql_exception $e) {
-        if ($e->getCode() !== 1060) { // Ignore duplicate column error
-            echo "Migration Alert: " . $e->getMessage() . "<br>";
-        }
-    }
 } else {
     echo "Users Table Error: " . $conn->error . "<br>";
 }
@@ -123,8 +112,18 @@ if ($conn->query($blocks)) {
 }
 
 // 5. Build High-Performance Polling Indexes
-$index = "CREATE INDEX idx_chat_flow ON messages (sender_id, receiver_id, id)";
-@$conn->query($index);
+try {
+    $index = "CREATE INDEX idx_chat_flow ON messages (sender_id, receiver_id, id)";
+    $conn->query($index);
+    echo "High-Performance Polling Indexes Configured Successfully<br>";
+} catch (mysqli_sql_exception $e) {
+    if ($e->getCode() == 1061) {
+        echo "Polling Indexes Verified (Already Exists)<br>";
+    } else {
+        echo "Index Configuration Alert: " . $e->getMessage() . "<br>";
+    }
+}
 
 echo "<br><strong style='color:green;'>Setup Complete!</strong> You can now go to <a href='register.php'>register.php</a> to create accounts.";
+$conn->close();
 ?>

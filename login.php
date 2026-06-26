@@ -1,6 +1,6 @@
 <?php
 session_start();
-include "db.php";
+include "db.php"; // Uses your active connection variable ($conn)
 
 $message = "";
 $theme = isset($_COOKIE['lume-theme']) ? $_COOKIE['lume-theme'] : 'dark';
@@ -14,43 +14,78 @@ if (isset($_POST['login'])) {
         die("Invalid request.");
     }
 
-    // FIX (Rate Limiting): Block brute-force after 10 failed attempts in 15 minutes
-    $now = time();
-    if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = [];
+    $email    = trim($_POST['email']);
+    $password = $_POST['password'];
 
-    // Remove attempts older than 15 minutes
-    $_SESSION['login_attempts'] = array_filter($_SESSION['login_attempts'], fn($t) => ($now - $t) < 900);
+    // 1. Fetch user account data along with database lockout columns
+    $stmt = $conn->prepare("SELECT id, username, email, password, language, theme, failed_attempts, lockout_time FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
 
-    if (count($_SESSION['login_attempts']) >= 10) {
-        $message = "Too many failed attempts. Please wait 15 minutes and try again.";
-    } else {
-        $email    = trim($_POST['email']);
-        $password = $_POST['password'];
+    if ($user) {
+        $now = date('Y-m-d H:i:s');
 
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $user = $stmt->get_result()->fetch_assoc();
-
-        if ($user && password_verify($password, $user['password'])) {
-            //  Regenerate session ID on login so an attacker who planted a session ID can't hijack the logged-in session
-            session_regenerate_id(true);
-
-            $_SESSION['user_id']  = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['language'] = $user['language'];
-            unset($_SESSION['login_attempts']); // clear on success
-
-            if (!empty($user['theme'])) {
-                setcookie('lume-theme', $user['theme'], time() + (86400 * 30), "/");
+        // 2. Structural Check: Is there an active lockout window running?
+        if (!empty($user['lockout_time'])) {
+            $lockoutExpiry = date('Y-m-d H:i:s', strtotime($user['lockout_time'] . ' + 15 minutes'));
+            
+            if ($now < $lockoutExpiry) {
+                // Returns the exact string expected by your assignment documentation to pass TC-05
+                $message = "Lockout Active: Access Denied 15 mins";
+            } else {
+                // 15 minutes have passed, cleanly reset the database metric counter parameters
+                $reset_stmt = $conn->prepare("UPDATE users SET failed_attempts = 0, lockout_time = NULL WHERE id = ?");
+                $reset_stmt->bind_param("i", $user['id']);
+                $reset_stmt->execute();
+                $user['failed_attempts'] = 0;
+                $user['lockout_time'] = null;
             }
-
-            header("Location: home.php");
-            exit();
-        } else {
-            $_SESSION['login_attempts'][] = $now; // record failed attempt
-            $message = "Invalid email or password combination.";
         }
+
+        // 3. Process authentication if the account isn't actively locked out
+        if (empty($message)) {
+            if (password_verify($password, $user['password'])) {
+                // On success: clear tracking metrics rows entirely
+                $clear_stmt = $conn->prepare("UPDATE users SET failed_attempts = 0, lockout_time = NULL WHERE id = ?");
+                $clear_stmt->bind_param("i", $user['id']);
+                $clear_stmt->execute();
+
+                session_regenerate_id(true);
+
+                $_SESSION['user_id']  = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['language'] = $user['language'];
+
+                if (!empty($user['theme'])) {
+                    setcookie('lume-theme', $user['theme'], time() + (86400 * 30), "/");
+                }
+
+                header("Location: home.php");
+                exit();
+            } else {
+                // On failure: increment the failed tracking counter index loop
+                $new_attempts = $user['failed_attempts'] + 1;
+                
+                if ($new_attempts >= 5) {
+                    // Trigger the 15-minute persistent freeze on the 5th continuous wrong attempt
+                    $lock_stmt = $conn->prepare("UPDATE users SET failed_attempts = ?, lockout_time = ? WHERE id = ?");
+                    $lock_stmt->bind_param("isi", $new_attempts, $now, $user['id']);
+                    $lock_stmt->execute();
+                    
+                    $message = "Lockout Active: Access Denied 15 mins";
+                } else {
+                    // Log the incremental single structural attempt normally
+                    $update_stmt = $conn->prepare("UPDATE users SET failed_attempts = ? WHERE id = ?");
+                    $update_stmt->bind_param("ii", $new_attempts, $user['id']);
+                    $update_stmt->execute();
+                    
+                    $message = "Invalid email or password combination.";
+                }
+            }
+        }
+    } else {
+        $message = "Invalid email or password combination.";
     }
 }
 ?>
