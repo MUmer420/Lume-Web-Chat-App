@@ -1,10 +1,9 @@
 <?php
-// 1. Force error visibility if anything else fails
+// forgot_password.php - Place this inside your htdocs/lume/ directory
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// 2. Updated Path: Points directly into your 'lume' folder configuration file
 include 'db.php'; 
 
 $message = "";
@@ -26,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $update->bind_param("sss", $token, $expires, $email);
         $update->execute();
         
-        // Dynamic detection routing matching your active port setup
         $resetLink = "http://localhost:8080/reset_password.php?token=" . $token;
         $message = "<strong>Simulation Mode:</strong> Link generated!<br><a href='$resetLink' style='color: inherit; text-decoration: underline;'>Click here to Reset Password</a>";
         $message_class = "alert alert-success";
@@ -42,19 +40,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lume - Forgot Password</title>
+    
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function () {
+            const match = document.cookie.match(new RegExp('(^| )lume-theme=([^;]+)'));
+            const savedTheme = match ? match[2] : 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
-<body data-theme="dark">
+<body>
 
 <div class="auth-wrapper form-page-card">
+    
+    <div class="auth-header-actions">
+        <button type="button" class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+            🌓
+        </button>
+    </div>
+
     <div class="auth-card">
         
         <div class="auth-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; width: 60px; height: 60px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; width: 60px; height: 60px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 12px; margin: 0 auto; display: block;">
                 <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-            <h1>Reset Password</h1>
-            <p>Enter your email to verify account recovery parameters.</p>
+            <h1 style="text-align: center; margin-top: 15px;">Reset Password</h1>
+            <p style="text-align: center;">Enter your email to verify account recovery parameters.</p>
         </div>
 
         <?php if (!empty($message)): ?>
@@ -65,19 +78,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <form method="POST" action="forgot_password.php">
             <div class="input-group">
-                <label for="email">Email Address</label>
+                <label for="email" style="margin-bottom: 8px;">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email address" required>
             </div>
             
             <button type="submit" class="btn-primary">Send Recovery Link</button>
         </form>
 
-        <div class="auth-footer">
-            <a href="login.php">← Back to Login Portal</a>
+        <div class="auth-footer" style="text-align: center; margin-top: 20px;">
+            <a href="login.php" style="color: #7c3aed; text-decoration: none; font-weight: 600;">← Back to Login Portal</a>
         </div>
         
     </div>
 </div>
+
+<script src="js/theme_handler.js"></script>
 
 </body>
 </html>

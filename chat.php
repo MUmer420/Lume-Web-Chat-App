@@ -35,6 +35,13 @@ $initial = strtoupper(substr($user['username'], 0, 1));
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat — <?php echo htmlspecialchars($user['username']); ?></title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function () {
+            const match = document.cookie.match(new RegExp('(^| )lume-theme=([^;]+)'));
+            const savedTheme = match ? match[2] : 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
 

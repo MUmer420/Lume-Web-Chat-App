@@ -31,6 +31,13 @@ $i = 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lume — Chats</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function () {
+            const match = document.cookie.match(new RegExp('(^| )lume-theme=([^;]+)'));
+            const savedTheme = match ? match[2] : 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
 <div class="users-wrapper">

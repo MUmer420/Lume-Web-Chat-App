@@ -1,5 +1,4 @@
 <?php
-// reset_password.php - Place this inside your htdocs/lume/ directory
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -60,12 +59,25 @@ if (isset($_GET['token'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lume - Update Password</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function () {
+            const match = document.cookie.match(new RegExp('(^| )lume-theme=([^;]+)'));
+            const savedTheme = match ? match[2] : 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
-<body data-theme="dark">
+<body>
 
 <div class="auth-wrapper form-page-card">
+    
+    <div class="auth-header-actions">
+        <button type="button" class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+            🌓
+        </button>
+    </div>
+
     <div class="auth-card">
-        
         <div class="auth-logo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; width: 60px; height: 60px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 16px; padding: 12px; margin: 0 auto; display: block;">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -87,7 +99,6 @@ if (isset($_GET['token'])) {
                 <label for="password" style="margin-bottom: 8px;">Enter New Password</label>
                 <input type="password" id="password" name="password" placeholder="Min. 1 upper case & 1 number" required>
             </div>
-            
             <button type="submit" class="btn-primary">Update Password</button>
         </form>
         <?php endif; ?>
@@ -98,6 +109,8 @@ if (isset($_GET['token'])) {
         
     </div>
 </div>
+
+<script src="theme_handler.js"></script>
 
 </body>
 </html>

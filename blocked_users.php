@@ -31,6 +31,13 @@ $result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lume — Blocked Users</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function () {
+            const match = document.cookie.match(new RegExp('(^| )lume-theme=([^;]+)'));
+            const savedTheme = match ? match[2] : 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
 <div class="users-wrapper">
@@ -77,7 +84,7 @@ $result = $stmt->get_result();
 
     </div>
 </div>
-
+<script src="js/theme-toggle.js"></script>
 <script>
 var csrf_token = "<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES); ?>";
 
