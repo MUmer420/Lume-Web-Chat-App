@@ -128,10 +128,15 @@ if (isset($_POST['login'])) {
                 <div class="error-msg" id="login-email-error"></div>
             </div>
             
-            <div class="input-group">
-                <label for="login-password">Password</label>
-                <input type="password" id="login-password" name="password" class="form-input" placeholder="Password" required>
-                <div class="error-msg" id="login-password-error"></div>
+           <div class="input-group">
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password" name="password" class="form-input" placeholder="Password" required>
+    <div class="error-msg" id="login-password-error"></div>
+    
+    <div style="margin-top: 8px; text-align: right; font-size: 13px;">
+        <a href="forgot_password.php" style="color: #bc6ff1; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+    </div>
+</div>
             </div>
 
             <button type="submit" name="login" class="btn-primary form-submit-btn">Log In</button>

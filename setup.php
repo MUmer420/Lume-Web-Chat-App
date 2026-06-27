@@ -60,6 +60,8 @@ $users = "CREATE TABLE IF NOT EXISTS users (
     theme VARCHAR(10) NOT NULL DEFAULT 'dark',
     failed_attempts INT DEFAULT 0,
     lockout_time DATETIME NULL,
+    reset_token VARCHAR(255) NULL, 
+    token_expires_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )";
 
