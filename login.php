@@ -96,6 +96,13 @@ if (isset($_POST['login'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lume — Login</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function () {
+            const match = document.cookie.match(new RegExp('(^| )lume-theme=([^;]+)'));
+            const savedTheme = match ? match[2] : 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
 <div class="auth-wrapper">
